@@ -296,7 +296,7 @@ RegisterNetEvent('add_fuel_option', function(data)
     lib.notify({ title = 'Campfire', description = 'Fuel added successfully.', type = 'success' })
     updateFuelProgressBar(0) -- Start updating the fuel progress bar
     TriggerServerEvent('camping:removeItem', itemtype, tonumber(amount[1]))
-    debugLog("Fuel level updated to: " .. fuelLevel .. "Total duration: " .. totalDuration .. "Fuel percentage: " .. fuelPercentage)
+    debugLog("Fuel level updated to: " .. fuelLevel .. " Total duration: " .. totalDuration .. " Fuel percentage: " .. fuelPercentage)
 end)
 
 -- Cooking handler
@@ -435,19 +435,6 @@ function RayCastGamePlayCamera(distance)
 	return b, c, e
 end
 
-function Draw2DText(content, font, colour, scale, x, y)
-    SetTextFont(font)
-    SetTextScale(scale, scale)
-    SetTextColour(colour[1],colour[2],colour[3], 255)
-    SetTextEntry("STRING")
-    SetTextDropShadow(0, 0, 0, 0,255)
-    SetTextDropShadow()
-    SetTextEdge(4, 0, 0, 0, 255)
-    SetTextOutline()
-    AddTextComponentString(content)
-    DrawText(x, y)
-end
-
 function math.round(input, decimalPlaces)
     return tonumber(string.format("%." .. (decimalPlaces or 0) .. "f", input))
 end
@@ -459,7 +446,7 @@ Citizen.CreateThread(function()
             local color = {r = 255, g = 255, b = 255, a = 200}
             local position = GetEntityCoords(PlayerPedId())
             local hit, coords, entity = RayCastGamePlayCamera(1000.0)
-            Draw2DText('Press ~g~E ~w~to place object', 4, {255, 255, 255}, 0.4, 0.55, 0.888 + 0.025)
+            lib.showTextUI('[E] - Place Object')
             DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
             DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
             if IsControlJustReleased(0, 38) then
@@ -471,7 +458,7 @@ Citizen.CreateThread(function()
             local color = {r = 255, g = 255, b = 255, a = 200}
             local position = GetEntityCoords(PlayerPedId())
             local hit, coords, entity = RayCastGamePlayCamera(1000.0)
-            Draw2DText('Press ~g~E ~w~to place object', 4, {255, 255, 255}, 0.4, 0.55, 0.888 + 0.025)
+            lib.showTextUI('[E] - Place Object')
             DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
             DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
             if IsControlJustReleased(0, 38) then
@@ -480,6 +467,7 @@ Citizen.CreateThread(function()
                 print(coords.x .. ' ' .. coords.y .. ' ' .. coords.z)
             end
         else
+            lib.hideTextUI()
             local Wait = 500
         end
         Citizen.Wait(Wait)
