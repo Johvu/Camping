@@ -4,6 +4,7 @@
 * ox_inventory
 
 **Feature**
+
 **TENT**
 - Sleep in tent: it will set your animation to sleep inside the tent for 1 minute
 - Open Tent Storage: will open Tent Stash with 10 slots and 10 kg. weight
