@@ -1,5 +1,7 @@
 Config = {}
 
+Config.DEBUG = true
+
 Config.TentModels = {
     'prop_skid_tent_01',
     'prop_skid_tent_01b',
@@ -85,4 +87,3 @@ Config.Recipes = {
     -- Add more Data here
 }
 
-Config.DEBUG = false

@@ -29,7 +29,7 @@ function generateRandomTentStashId()
 end
 
 -- Tent spawning logic
-function spawnTent()
+function spawnTent(x,y,z)
     debugLog("Attempting to spawn a tent.")
     if prevtent.prop then
         debugLog("Previous tent exists. Deleting it.")
@@ -38,14 +38,17 @@ function spawnTent()
         prevtent = { prop = nil, stashID = nil }
     end
 
-    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0, 2.0, -1.95))
-    debugLog(("Tent coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, z))
+    debugLog(("Tent coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, (z -0.945)))
 
     local randomModel = TentModels[math.random(1, #TentModels)]
     debugLog("Selected tent model: " .. randomModel)
 
     local tentHash = GetHashKey(randomModel)
-    local prop = CreateObject(tentHash, x, y, z, true, false, true)
+    RequestModel(tentHash)
+    while not HasModelLoaded(tentHash) do
+        Wait(0)
+    end
+    local prop = CreateObject(tentHash, x, y, (z -0.945), true, false, true)
     SetEntityHeading(prop, GetEntityHeading(PlayerPedId()))
 
     local stashId = generateRandomTentStashId()
@@ -59,7 +62,7 @@ function spawnTent()
 end
 
 -- Campfire spawning logic
-function spawnCampfire()
+function spawnCampfire(x,y,z)
     debugLog("Attempting to spawn a campfire.")
     if prevfire then
         debugLog("Previous campfire exists. Deleting it.")
@@ -68,12 +71,16 @@ function spawnCampfire()
         prevfire = nil
     end
 
-    local x, y, z = table.unpack(GetOffsetFromEntityInWorldCoords(PlayerPedId(), 0.0, 2.0, -1.55))
-    debugLog(("Campfire coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, z))
-
-    local fireHash = GetHashKey("prop_beach_fire")
-    local prop = CreateObject(fireHash, x, y, z, true, false, true)
+    debugLog(("Campfire coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, (z -0.55)))
+    local fireModel = CampfireModels[math.random(1, #CampfireModels)]
+    local fireHash = GetHashKey(fireModel)
+    RequestModel(fireHash)
+    while not HasModelLoaded(fireHash) do
+        Wait(0)
+    end
+    local prop = CreateObject(fireHash, x, y, (z -0.55), true, false, true)
     SetEntityHeading(prop, GetEntityHeading(PlayerPedId()))
+
 
     prevfire = prop
 
@@ -85,11 +92,11 @@ end
 AddEventHandler('ox_inventory:usedItem', function(name, slotId, metadata)
     debugLog(("Item used: %s (Slot: %d)"):format(name, slotId))
     if name == Config.tentItem then
+        toggleRaycastTent()
         debugLog("Spawning tent.")
-        spawnTent()
     elseif name == Config.campfireItem then
+        toggleRaycastCampfire()
         debugLog("Spawning campfire.")
-        spawnCampfire()
     end
 end)
 
@@ -395,3 +402,93 @@ function AddCampfireModel(model, eventtotrigger, eventtotrigger2)
         { label = "Pickup campfire", icon = 'fa-hand', distance = 1.5, event = eventtotrigger2 },
     })
 end
+
+local enableTent = false
+local enableCampfire = false
+
+function toggleRaycastTent()
+    enableTent = not enableTent  -- Toggle between true and false
+end
+function toggleRaycastCampfire()
+    enableCampfire = not enableCampfire  -- Toggle between true and false
+end
+function RotationToDirection(rotation)
+	local adjustedRotation =
+	{
+		x = (math.pi / 180) * rotation.x,
+		y = (math.pi / 180) * rotation.y,
+		z = (math.pi / 180) * rotation.z
+	}
+	local direction =
+	{
+		x = -math.sin(adjustedRotation.z) * math.abs(math.cos(adjustedRotation.x)),
+		y = math.cos(adjustedRotation.z) * math.abs(math.cos(adjustedRotation.x)),
+		z = math.sin(adjustedRotation.x)
+	}
+	return direction
+end
+
+function RayCastGamePlayCamera(distance)
+    local cameraRotation = GetGameplayCamRot()
+	local cameraCoord = GetGameplayCamCoord()
+	local direction = RotationToDirection(cameraRotation)
+	local destination =
+	{
+		x = cameraCoord.x + direction.x * distance,
+		y = cameraCoord.y + direction.y * distance,
+		z = cameraCoord.z + direction.z * distance
+	}
+	local a, b, c, d, e = GetShapeTestResult(StartShapeTestRay(cameraCoord.x, cameraCoord.y, cameraCoord.z, destination.x, destination.y, destination.z, -1, PlayerPedId(), 0))
+	return b, c, e
+end
+
+function Draw2DText(content, font, colour, scale, x, y)
+    SetTextFont(font)
+    SetTextScale(scale, scale)
+    SetTextColour(colour[1],colour[2],colour[3], 255)
+    SetTextEntry("STRING")
+    SetTextDropShadow(0, 0, 0, 0,255)
+    SetTextDropShadow()
+    SetTextEdge(4, 0, 0, 0, 255)
+    SetTextOutline()
+    AddTextComponentString(content)
+    DrawText(x, y)
+end
+
+function math.round(input, decimalPlaces)
+    return tonumber(string.format("%." .. (decimalPlaces or 0) .. "f", input))
+end
+
+Citizen.CreateThread(function()
+	while true do
+        local Wait = 5
+        if enableTent then
+            local color = {r = 255, g = 255, b = 255, a = 200}
+            local position = GetEntityCoords(PlayerPedId())
+            local hit, coords, entity = RayCastGamePlayCamera(1000.0)
+            Draw2DText('Press ~g~E ~w~to place object', 4, {255, 255, 255}, 0.4, 0.55, 0.888 + 0.025)
+            DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
+            DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
+            if IsControlJustReleased(0, 38) then
+                spawnTent(coords.x, coords.y, coords.z)
+                toggleRaycastTent()
+                print(coords.x .. ' ' .. coords.y .. ' ' .. coords.z)
+            end
+        elseif enableCampfire then
+            local color = {r = 255, g = 255, b = 255, a = 200}
+            local position = GetEntityCoords(PlayerPedId())
+            local hit, coords, entity = RayCastGamePlayCamera(1000.0)
+            Draw2DText('Press ~g~E ~w~to place object', 4, {255, 255, 255}, 0.4, 0.55, 0.888 + 0.025)
+            DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
+            DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
+            if IsControlJustReleased(0, 38) then
+                spawnCampfire(coords.x, coords.y, coords.z)
+                toggleRaycastCampfire()
+                print(coords.x .. ' ' .. coords.y .. ' ' .. coords.z)
+            end
+        else
+            local Wait = 500
+        end
+        Citizen.Wait(Wait)
+	end
+end)
