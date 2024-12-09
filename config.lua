@@ -11,12 +11,12 @@ Config.CampfireModels = {
     'prop_beach_fire',
 }
 
-Config.SleepDuration = 1 -- minute
+Config.SleepDuration = 0.1 -- minute
 
 Config.tentItem = 'tent'
 Config.campfireItem = 'campfire'
 
-Config.maxFuel = 3 -- minutes
+Config.maxFuel = 300 -- seconds
 Config.FuelMenu = {
     [1] = {
         icon = 'fa-newspaper',

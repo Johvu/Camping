@@ -200,9 +200,8 @@ function deleteTent()
     end
 end
 
-local maxFuelLevel = Config.maxFuel * minute
+local maxFuelLevel = Config.maxFuel
 local fuelLevel = 0 -- Initialize fuel level
-local Fuelcfg = Config.Fuel
 -- Update fuel progress bar dynamically
 function updateFuelProgressBar(consume)
     if fuelLevel <= 0 then
@@ -210,19 +209,12 @@ function updateFuelProgressBar(consume)
         return
     end
 
-    fuelLevel = math.max(0, fuelLevel - consume)
-end
-
-function refreshFuelLevel()
-    fuelLevel = math.max(fuelLevel, 0) -- Ensure it doesn't go below zero
-
-    -- Optional: Add debug logs to verify the value
-    debugLog("Fuel level refreshed. Current level: " .. fuelLevel)
+    fuelLevel = fuelLevel - consume
+    debugLog("Fuel level updated to: " .. fuelLevel)
 end
 
 -- Show the campfire menu with the current fuel level
 function showCampfireMenu()
-    refreshFuelLevel()
     lib.registerContext({
         id = 'campfire_menu',
         title = 'Campfire',
@@ -304,6 +296,7 @@ RegisterNetEvent('add_fuel_option', function(data)
     lib.notify({ title = 'Campfire', description = 'Fuel added successfully.', type = 'success' })
     updateFuelProgressBar(0) -- Start updating the fuel progress bar
     TriggerServerEvent('camping:removeItem', itemtype, tonumber(amount[1]))
+    debugLog("Fuel level updated to: " .. fuelLevel .. "Total duration: " .. totalDuration .. "Fuel percentage: " .. fuelPercentage)
 end)
 
 -- Cooking handler
