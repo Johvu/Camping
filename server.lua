@@ -23,7 +23,7 @@ end)
 
 RegisterNetEvent('camping:deleteCampingData')
 AddEventHandler('camping:deleteCampingData', function(type, stashID)
-    local query = "DELETE FROM camping_data WHERE type = @type AND stashID = @stashID"
+    local query = "DELETE FROM camping WHERE type = @type AND stashID = @stashID"
     exports.oxmysql:execute(query, {
         ['@type'] = type,
         ['@stashID'] = stashID
