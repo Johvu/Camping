@@ -1,8 +1,34 @@
-local function debugLog(message)
-    if Config.DEBUG then
-        print("^3[DEBUG]^7 " .. tostring(message))
+RegisterNetEvent('camping:saveCampingData')
+AddEventHandler('camping:saveCampingData', function(type, model, x, y, z, stashID, heading)
+    local query = "INSERT INTO camping (type, model, x, y, z, stashID, heading) VALUES (@type, @model, @x, @y, @z, @stashID, @heading)"
+    exports.oxmysql:insert(query, {
+        ['@type'] = type,
+        ['@model'] = model,
+        ['@x'] = x,
+        ['@y'] = y,
+        ['@z'] = z,
+        ['@stashID'] = stashID or '',
+        ['@heading'] = heading
+    })
+end)
+
+RegisterNetEvent('camping:LoadData')
+AddEventHandler('camping:LoadData', function()
+    local result = exports.oxmysql:executeSync("SELECT * FROM camping")
+    for _, data in ipairs(result) do
+        TriggerClientEvent('camping:loadCampingData', -1, data)
+        debugLog("Loaded camping data : " .. json.encode(data))
     end
-end
+end)
+
+RegisterNetEvent('camping:deleteCampingData')
+AddEventHandler('camping:deleteCampingData', function(type, stashID)
+    local query = "DELETE FROM camping_data WHERE type = @type AND stashID = @stashID"
+    exports.oxmysql:execute(query, {
+        ['@type'] = type,
+        ['@stashID'] = stashID
+    })
+end)
 
 -- Add Item
 RegisterNetEvent('camping:addItem', function(itemName, amount)
@@ -33,3 +59,9 @@ RegisterNetEvent('camping:createTentStash', function(stashId)
 
 end)
 
+
+function debugLog(message)
+    if Config.DEBUG then
+        print("^3[DEBUG]^7 " .. tostring(message))
+    end
+end

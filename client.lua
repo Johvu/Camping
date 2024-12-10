@@ -19,6 +19,24 @@ Citizen.CreateThread(function()
     debugLog("Initializing camping script.")
     AddTentModel(TentModels, "camping:UseTent", "camping:TentStorage", "camping:PickupTent")
     AddCampfireModel(CampfireModels, "camping:UseCampfire", "camping:PickupCampfire")
+    TriggerServerEvent('camping:LoadData')
+end)
+
+RegisterNetEvent('camping:loadCampingData')
+AddEventHandler('camping:loadCampingData', function(data)
+    debugLog("Received camping data: " .. json.encode(data))
+    local modelHash = GetHashKey(data.model)
+    RequestModel(modelHash)
+    while not HasModelLoaded(modelHash) do Wait(0) end
+
+    local prop = CreateObject(modelHash, data.x, data.y, data.z, true, false, true)
+    SetEntityHeading(prop, data.heading)
+
+    if data.type == 'tent' then
+        prevtent = { prop = prop, stashID = data.stashID }
+    else
+        prevfire = prop
+    end
 end)
 
 function generateRandomTentStashId()
@@ -45,11 +63,10 @@ function spawnTent(x,y,z)
 
     local tentHash = GetHashKey(randomModel)
     RequestModel(tentHash)
-    while not HasModelLoaded(tentHash) do
-        Wait(0)
-    end
+    while not HasModelLoaded(tentHash) do Wait(0) end
     local prop = CreateObject(tentHash, x, y, (z -0.945), true, false, true)
-    SetEntityHeading(prop, GetEntityHeading(PlayerPedId()))
+    local heading = GetEntityHeading(PlayerPedId())
+    SetEntityHeading(prop, heading)
 
     local stashId = generateRandomTentStashId()
     prevtent = { prop = prop, stashID = stashId }
@@ -59,6 +76,8 @@ function spawnTent(x,y,z)
     debugLog("Tent spawned and stash created with ID: " .. stashId)
 
     lib.notify({ title = 'Tent', description = 'Tent spawned successfully.', type = 'success' })
+
+    TriggerServerEvent('camping:saveCampingData', 'tent', randomModel, x, y, (z -0.945), stashId, heading)
 end
 
 -- Campfire spawning logic
@@ -75,17 +94,18 @@ function spawnCampfire(x,y,z)
     local fireModel = CampfireModels[math.random(1, #CampfireModels)]
     local fireHash = GetHashKey(fireModel)
     RequestModel(fireHash)
-    while not HasModelLoaded(fireHash) do
-        Wait(0)
-    end
+    while not HasModelLoaded(fireHash) do Wait(0) end
     local prop = CreateObject(fireHash, x, y, (z -0.55), true, false, true)
-    SetEntityHeading(prop, GetEntityHeading(PlayerPedId()))
+    local heading = GetEntityHeading(PlayerPedId())
+    SetEntityHeading(prop, heading)
 
 
     prevfire = prop
 
     TriggerServerEvent('camping:removeItem', Config.campfireItem, 1)
     lib.notify({ title = 'Campfire', description = 'Campfire spawned successfully.', type = 'success' })
+
+    TriggerServerEvent('camping:saveCampingData', 'campfire', fireModel, x, y, (z -0.55), nil, heading)
 end
 
 -- Event Handlers
@@ -189,6 +209,7 @@ function deleteTent()
     else
         SetEntityAsMissionEntity(prevtent.prop)
         DeleteObject(prevtent.prop)
+        TriggerServerEvent('camping:deleteCampingData', 'tent', prevtent.stashID)
         prevtent = { prop = nil, stashID = nil }
         debugLog("Tent deleted successfully.")
         lib.notify({
@@ -346,10 +367,6 @@ RegisterNetEvent('campfire_cooking', function(recipe)
     end
 end)
 
-
-
-
-
 RegisterNetEvent('camping:PickupCampfire', function()
     debugLog("Attempting to pick up the campfire.")
     deleteCampfire()
@@ -367,6 +384,7 @@ function deleteCampfire()
     else
         SetEntityAsMissionEntity(prevfire)
         DeleteObject(prevfire)
+        TriggerServerEvent('camping:deleteCampingData', 'campfire', nil)
         prevfire = nil
         debugLog("Campfire deleted successfully.")
         lib.notify({
