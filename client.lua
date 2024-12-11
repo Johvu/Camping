@@ -3,21 +3,24 @@ local function debugLog(message)
         print("^3[DEBUG]^7 " .. tostring(message))
     end
 end
+local sec = 1000
+local minute = 60 * sec
 
 local prevtent = {
     prop = nil,
     stashID = nil,
+    coords = nil,
+    busy = false
 }
 local prevfire = nil
 local TentModels = Config.TentModels
 local CampfireModels = Config.CampfireModels
 
-local sec = 1000
-local minute = 60 * sec
+
 
 Citizen.CreateThread(function()
     debugLog("Initializing camping script.")
-    AddTentModel(TentModels, "camping:UseTent", "camping:TentStorage", "camping:PickupTent")
+    AddTentModel(TentModels, "camping:UseTent", "camping:TentStorage", "camping:PickupTent", "camping:IsPlayerInsideTent")
     AddCampfireModel(CampfireModels, "camping:UseCampfire", "camping:PickupCampfire")
     TriggerServerEvent('camping:LoadData')
 end)
@@ -33,7 +36,7 @@ AddEventHandler('camping:loadCampingData', function(data)
     SetEntityHeading(prop, data.heading)
 
     if data.type == 'tent' then
-        prevtent = { prop = prop, stashID = data.stashID }
+        prevtent = { prop = prop, stashID = data.stashID, coords = vector3(data.x, data.y, data.z) }
     else
         prevfire = prop
     end
@@ -53,7 +56,7 @@ function spawnTent(x,y,z)
         debugLog("Previous tent exists. Deleting it.")
         SetEntityAsMissionEntity(prevtent.prop)
         DeleteObject(prevtent.prop)
-        prevtent = { prop = nil, stashID = nil }
+        prevtent = { prop = nil, stashID = nil, coords = nil }
     end
 
     debugLog(("Tent coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, (z -0.945)))
@@ -64,12 +67,15 @@ function spawnTent(x,y,z)
     local tentHash = GetHashKey(randomModel)
     RequestModel(tentHash)
     while not HasModelLoaded(tentHash) do Wait(0) end
-    local prop = CreateObject(tentHash, x, y, (z -0.945), true, false, true)
+    local prop = CreateObject(tentHash, x, y, z, true, false, true)
     local heading = GetEntityHeading(PlayerPedId())
     SetEntityHeading(prop, heading)
+    PlaceObjectOnGroundProperly(prop)
+    SetEntityCoordsNoOffset(prop, x, y, z + 0.58)
+    
 
     local stashId = generateRandomTentStashId()
-    prevtent = { prop = prop, stashID = stashId }
+    prevtent = { prop = prop, stashID = stashId , coords = vector3(x, y, z) }
 
     TriggerServerEvent('camping:removeItem', Config.tentItem, 1)
     TriggerServerEvent('camping:createTentStash', stashId)
@@ -98,6 +104,8 @@ function spawnCampfire(x,y,z)
     local prop = CreateObject(fireHash, x, y, (z -0.55), true, false, true)
     local heading = GetEntityHeading(PlayerPedId())
     SetEntityHeading(prop, heading)
+    PlaceObjectOnGroundProperly(prop)
+    SetEntityCoordsNoOffset(prop, x, y, z + 0.1)
 
 
     prevfire = prop
@@ -120,6 +128,14 @@ AddEventHandler('ox_inventory:usedItem', function(name, slotId, metadata)
     end
 end)
 
+RegisterNetEvent('camping:IsPlayerInsideTent', function()
+    if prevtent.busy then
+        lib.notify({title = 'Tent Status', description = 'Someone is inside the tent.', type = 'success'})
+    else
+        lib.notify({title = 'Tent Status', description = 'No one is inside the tent.', type = 'error'})
+    end
+end)
+
 
 RegisterNetEvent('camping:UseTent', function()
     debugLog("Sleeping in the tent.")
@@ -129,13 +145,9 @@ RegisterNetEvent('camping:UseTent', function()
         lib.notify({title = 'Tent', description = 'No tent found!', type = 'error'})
         return
     end
-    local pedCoords = GetEntityCoords(playerPed)
-    local px, py, pz = table.unpack(pedCoords)
-    local tentCoords = GetEntityCoords(prevtent.prop)
-    local x, y, z = table.unpack(tentCoords)
-    local Sduration = Config.SleepDuration * minute
 
-    SetEntityCoordsNoOffset(playerPed, x, y, z, true, true, true)
+    local tentCoords = GetEntityCoords(prevtent.prop)
+    SetEntityCoordsNoOffset(playerPed, tentCoords.x, tentCoords.y, tentCoords.z, true, true, true)
 
     local dict = Config.TentAnimDict or "amb@world_human_sunbathe@male@back@base"
     local anim = Config.TentAnimName or "base"
@@ -158,26 +170,23 @@ RegisterNetEvent('camping:UseTent', function()
     end
 
     TaskPlayAnim(playerPed, dict, anim, 8.0, -8.0, -1, 1, 0, false, false, false)
+    prevtent.busy = true
+    lib.showTextUI('[E] to leave the tent')
 
-    local success = lib.progressBar({
-        duration = Sduration,
-        label = "Resting in tent",
-        useWhileDead = false,
-        canCancel = false,
-        disableControls = true,
-    })
-
-    if not success then
-        lib.notify({title = 'Tent', description = 'Resting interrupted!', type = 'error'})
-        ClearPedTasksImmediately(playerPed)
-        SetEntityCoordsNoOffset(playerPed, px, py, pz, true, true, true)
-        return
-    end
-
-    ClearPedTasksImmediately(playerPed)
-    SetEntityCoordsNoOffset(playerPed, px, py, pz, true, true, true)
-    lib.notify({title = 'Tent', description = 'You have finished resting.', type = 'success'})
+    CreateThread(function()
+        while true do
+            Wait(0)
+            if IsControlJustReleased(0, 38) then -- Key "E"
+                ClearPedTasksImmediately(playerPed)
+                prevtent.busy = false
+                lib.hideTextUI()
+                lib.notify({title = 'Tent', description = 'You left the tent.', type = 'success'})
+                break
+            end
+        end
+    end)
 end)
+
 
 
 -- Tent Storage Interaction
@@ -397,20 +406,21 @@ function deleteCampfire()
 end
 
 -- Add Tent Model and interactions
-function AddTentModel(model, eventtotrigger, eventtotrigger2, eventtotrigger3)
+function AddTentModel(model, eventtotrigger, eventtotrigger2, eventtotrigger3, eventtotrigger4)
     debugLog("Adding tent models to ox_target.")
     exports.ox_target:addModel(model, {
-        { label = "Sleep in tent", icon = 'fa-bed', distance = 1.5, event = eventtotrigger },
-        { label = "Open tent storage", icon = 'fa-box-archive', distance = 1.5, event = eventtotrigger2 },
-        { label = "Pickup tent", icon = 'fa-hand', distance = 1.5, event = eventtotrigger3 },
+        { label = "Is some one inside?", icon = 'magnifying-glass', iconColor = 'white', distance = 1.5, event = eventtotrigger4 },
+        { label = "Go inside", icon = 'bed',iconColor = 'white', distance = 1.5, event = eventtotrigger },
+        { label = "Open tent storage", icon = 'box-archive',iconColor = 'white', distance = 1.5, event = eventtotrigger2 },
+        { label = "Pickup tent", icon = 'hand',iconColor = 'white', distance = 1.5, event = eventtotrigger3 },
     })
 end
 
 function AddCampfireModel(model, eventtotrigger, eventtotrigger2)
     debugLog("Adding campfire models to ox_target.")
     exports.ox_target:addModel(model, {
-        { label = "Use campfire", icon = 'fa-fire', distance = 1.5, event = eventtotrigger },
-        { label = "Pickup campfire", icon = 'fa-hand', distance = 1.5, event = eventtotrigger2 },
+        { label = "Use campfire", icon = 'fire',iconColor = 'white', distance = 1.5, event = eventtotrigger },
+        { label = "Pickup campfire", icon = 'hand',iconColor = 'white', distance = 1.5, event = eventtotrigger2 },
     })
 end
 
