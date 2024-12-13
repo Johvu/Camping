@@ -318,28 +318,49 @@ end)
 
 -- Add fuel handler
 RegisterNetEvent('add_fuel_option', function(data)
+    local src = source
     local itemtype = data.type
     local minAmt, maxAmt
+    
+    -- Define the item type ranges
     if itemtype == "paper" then minAmt, maxAmt = 1, 20
     elseif itemtype == "wood" then minAmt, maxAmt = 1, 10
     elseif itemtype == "coal" then minAmt, maxAmt = 1, 5 end
 
+    -- Check if the player has the required items before proceeding
+    local itemCount = exports.ox_inventory:Search('count', itemtype)
+    if itemCount <= 0 then
+        lib.notify({ title = 'Fuel', description = 'You do not have any ' .. itemtype .. '.', type = 'error' })
+        return
+    end
+
+    -- Prompt for input dialog
     local amount = lib.inputDialog("Add Fuel", { { type = "number", label = "Amount (" .. minAmt .. "-" .. maxAmt .. ")", min = minAmt, max = maxAmt } })
 
     if not amount or tonumber(amount[1]) < 1 then
         lib.notify({ title = 'Fuel', description = 'Invalid amount.', type = 'error' })
         return
     end
+
+    local inputAmount = tonumber(amount[1])
+
+    -- Check if the player has enough of the required item
+    if inputAmount > itemCount then
+        lib.notify({ title = 'Fuel', description = 'You do not have enough ' .. itemtype .. '.', type = 'error' })
+        return
+    end
+    
     -- Calculate total duration based on input amount
-    local totalDuration = data.duration * tonumber(amount[1])
+    local totalDuration = data.duration * inputAmount
     -- Calculate fuel percentage
     local fuelPercentage = (totalDuration / maxFuelLevel) * 100
     fuelLevel = fuelLevel + fuelPercentage
     lib.notify({ title = 'Campfire', description = 'Fuel added successfully.', type = 'success' })
-    updateFuelProgressBar(0) -- Start updating the fuel progress bar
-    TriggerServerEvent('camping:removeItem', itemtype, tonumber(amount[1]))
+    updateFuelProgressBar(fuelLevel)  -- Update fuel progress bar with the current level
+    TriggerServerEvent('camping:removeItem', itemtype, inputAmount)
     debugLog("Fuel level updated to: " .. fuelLevel .. " Total duration: " .. totalDuration .. " Fuel percentage: " .. fuelPercentage)
 end)
+
 
 -- Cooking handler
 RegisterNetEvent('campfire_cooking', function(recipe)
