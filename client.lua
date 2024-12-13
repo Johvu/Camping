@@ -140,9 +140,10 @@ end)
 RegisterNetEvent('camping:UseTent', function()
     debugLog("Sleeping in the tent.")
     local playerPed = PlayerPedId()
+    local PedCoord = GetEntityCoords(playerPed)
 
-    if not prevtent or not prevtent.prop then
-        lib.notify({title = 'Tent', description = 'No tent found!', type = 'error'})
+    if not prevtent or not DoesEntityExist(prevtent.prop) then
+        lib.notify({title = 'Tent', description = 'No tent found or tent is invalid!', type = 'error'})
         return
     end
 
@@ -153,9 +154,8 @@ RegisterNetEvent('camping:UseTent', function()
     local anim = Config.TentAnimName or "base"
     RequestAnimDict(dict)
 
-    local timeout = 5000 -- 5 seconds timeout
+    local timeout = 5000
     local startTime = GetGameTimer()
-
     while not HasAnimDictLoaded(dict) do
         Wait(10)
         if GetGameTimer() - startTime > timeout then
@@ -171,22 +171,24 @@ RegisterNetEvent('camping:UseTent', function()
 
     TaskPlayAnim(playerPed, dict, anim, 8.0, -8.0, -1, 1, 0, false, false, false)
     prevtent.busy = true
-    lib.showTextUI('[E] to leave the tent')
+
+    -- Debug log to confirm TextUI display
 
     CreateThread(function()
-        while true do
+        while prevtent.busy do
+            lib.showTextUI('[E] to leave the tent')
             Wait(0)
+            -- Debug log to confirm thread is running            
             if IsControlJustReleased(0, 38) then -- Key "E"
                 ClearPedTasksImmediately(playerPed)
+                SetEntityCoords(playerPed, PedCoord.x, PedCoord.y, PedCoord.z -1, true, false, false, false)
                 prevtent.busy = false
                 lib.hideTextUI()
                 lib.notify({title = 'Tent', description = 'You left the tent.', type = 'success'})
-                break
             end
         end
     end)
 end)
-
 
 
 -- Tent Storage Interaction
@@ -405,22 +407,24 @@ function deleteCampfire()
     end
 end
 
+local distance = Config.targetDistance
+
 -- Add Tent Model and interactions
 function AddTentModel(model, eventtotrigger, eventtotrigger2, eventtotrigger3, eventtotrigger4)
     debugLog("Adding tent models to ox_target.")
     exports.ox_target:addModel(model, {
-        { label = "Is some one inside?", icon = 'magnifying-glass', iconColor = 'white', distance = 1.5, event = eventtotrigger4 },
-        { label = "Go inside", icon = 'bed',iconColor = 'white', distance = 1.5, event = eventtotrigger },
-        { label = "Open tent storage", icon = 'box-archive',iconColor = 'white', distance = 1.5, event = eventtotrigger2 },
-        { label = "Pickup tent", icon = 'hand',iconColor = 'white', distance = 1.5, event = eventtotrigger3 },
+        { label = "Is some one inside?", icon = 'magnifying-glass', iconColor = 'white', distance = distance, event = eventtotrigger4 },
+        { label = "Go inside", icon = 'bed',iconColor = 'white', distance = distance, event = eventtotrigger },
+        { label = "Open tent storage", icon = 'box-archive',iconColor = 'white', distance = distance, event = eventtotrigger2 },
+        { label = "Pickup tent", icon = 'hand',iconColor = 'white', distance = distance, event = eventtotrigger3 },
     })
 end
 
 function AddCampfireModel(model, eventtotrigger, eventtotrigger2)
     debugLog("Adding campfire models to ox_target.")
     exports.ox_target:addModel(model, {
-        { label = "Use campfire", icon = 'fire',iconColor = 'white', distance = 1.5, event = eventtotrigger },
-        { label = "Pickup campfire", icon = 'hand',iconColor = 'white', distance = 1.5, event = eventtotrigger2 },
+        { label = "Use campfire", icon = 'fire',iconColor = 'white', distance = distance, event = eventtotrigger },
+        { label = "Pickup campfire", icon = 'hand',iconColor = 'white', distance = distance, event = eventtotrigger2 },
     })
 end
 
