@@ -9,10 +9,12 @@ local minute = 60 * sec
 local prevtent = {
     prop = nil,
     stashID = nil,
-    coords = nil,
     busy = false
 }
-local prevfire = nil
+local prevfire = {
+    prop = nil,
+    ID = nil,
+}
 local TentModels = Config.TentModels
 local CampfireModels = Config.CampfireModels
 
@@ -38,7 +40,7 @@ AddEventHandler('camping:loadCampingData', function(data)
     if data.type == 'tent' then
         prevtent = { prop = prop, stashID = data.stashID, coords = vector3(data.x, data.y, data.z) }
     else
-        prevfire = prop
+        prevfire = { prop = prop, ID = data.stashID }
     end
 end)
 
@@ -47,6 +49,13 @@ function generateRandomTentStashId()
     local stashId = "tent_" .. randomId
     debugLog("Generated random stash ID: " .. stashId)
     return stashId
+end
+
+function generateRandomCampfireId()
+    local randomId = math.random(100000, 999999)
+    local campfireId = "campfire_" .. randomId
+    debugLog("Generated random ID: " .. campfireId)
+    return campfireId
 end
 
 -- Tent spawning logic
@@ -91,14 +100,15 @@ function spawnCampfire(x,y,z)
     debugLog("Attempting to spawn a campfire.")
     if prevfire then
         debugLog("Previous campfire exists. Deleting it.")
-        SetEntityAsMissionEntity(prevfire)
-        DeleteObject(prevfire)
-        prevfire = nil
+        SetEntityAsMissionEntity(prevfire.prop)
+        DeleteObject(prevfire.prop)
+        prevfire = { prop = nil, ID = nil }
     end
 
     debugLog(("Campfire coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, (z -0.55)))
     local fireModel = CampfireModels[math.random(1, #CampfireModels)]
     local fireHash = GetHashKey(fireModel)
+    local campfireID = generateRandomCampfireId()
     RequestModel(fireHash)
     while not HasModelLoaded(fireHash) do Wait(0) end
     local prop = CreateObject(fireHash, x, y, (z -0.55), true, false, true)
@@ -108,12 +118,12 @@ function spawnCampfire(x,y,z)
     SetEntityCoordsNoOffset(prop, x, y, z + 0.1)
 
 
-    prevfire = prop
+    prevfire = { prop = prop, ID = campfireID }
 
     TriggerServerEvent('camping:removeItem', Config.campfireItem, 1)
     lib.notify({ title = 'Campfire', description = 'Campfire spawned successfully.', type = 'success' })
 
-    TriggerServerEvent('camping:saveCampingData', 'campfire', fireModel, x, y, (z -0.55), nil, heading)
+    TriggerServerEvent('camping:saveCampingData', 'campfire', fireModel, x, y, (z -0.55), campfireID, heading)
 end
 
 -- Event Handlers
@@ -393,10 +403,10 @@ function deleteCampfire()
             type = 'error'
         })
     else
-        SetEntityAsMissionEntity(prevfire)
-        DeleteObject(prevfire)
-        TriggerServerEvent('camping:deleteCampingData', 'campfire', nil)
-        prevfire = nil
+        SetEntityAsMissionEntity(prevfire.prop)
+        DeleteObject(prevfire.prop)
+        TriggerServerEvent('camping:deleteCampingData', 'campfire', prevfire.ID)
+        prevfire = { prop = nil, ID = nil }
         debugLog("Campfire deleted successfully.")
         lib.notify({
             title = 'Campfire',
