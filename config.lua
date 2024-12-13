@@ -1,6 +1,8 @@
 Config = {}
 
-Config.DEBUG = true
+Config.DEBUG = false
+
+Config.targetDistance = 1.5
 
 Config.TentModels = {
     'prop_skid_tent_01',
@@ -63,7 +65,7 @@ Config.CookingMenu = {
 Config.Recipes = {
     grill_meat = {
         label = "Grill Meat",
-        cookTime = 60000, -- seconds
+        cookTime = 5000, -- seconds
         ingredients = { 
             { name = "meat", count = 1 }
         }
