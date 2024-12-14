@@ -356,7 +356,7 @@ RegisterNetEvent('add_fuel_option', function(data)
     local fuelPercentage = (totalDuration / maxFuelLevel) * 100
     fuelLevel = fuelLevel + fuelPercentage
     lib.notify({ title = 'Campfire', description = 'Fuel added successfully.', type = 'success' })
-    updateFuelProgressBar(fuelLevel)  -- Update fuel progress bar with the current level
+    updateFuelProgressBar(0)  -- Update fuel progress bar with the current level
     TriggerServerEvent('camping:removeItem', itemtype, inputAmount)
     debugLog("Fuel level updated to: " .. fuelLevel .. " Total duration: " .. totalDuration .. " Fuel percentage: " .. fuelPercentage)
 end)
