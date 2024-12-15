@@ -86,7 +86,7 @@ function spawnTent(x,y,z)
     local stashId = generateRandomTentStashId()
     prevtent = { prop = prop, stashID = stashId , coords = vector3(x, y, z) }
 
-    TriggerServerEvent('camping:removeItem', Config.tentItem, 1)
+    TriggerServerEvent('camping:RI', Config.tentItem, 1)
     TriggerServerEvent('camping:createTentStash', stashId)
     debugLog("Tent spawned and stash created with ID: " .. stashId)
 
@@ -120,7 +120,7 @@ function spawnCampfire(x,y,z)
 
     prevfire = { prop = prop, ID = campfireID }
 
-    TriggerServerEvent('camping:removeItem', Config.campfireItem, 1)
+    TriggerServerEvent('camping:RI', Config.campfireItem, 1)
     lib.notify({ title = 'Campfire', description = 'Campfire spawned successfully.', type = 'success' })
 
     TriggerServerEvent('camping:saveCampingData', 'campfire', fireModel, x, y, (z -0.55), campfireID, heading)
@@ -184,16 +184,20 @@ RegisterNetEvent('camping:UseTent', function()
 
     -- Debug log to confirm TextUI display
 
+    local showingText = false
     CreateThread(function()
         while prevtent.busy do
-            lib.showTextUI('[E] to leave the tent')
+            if not showingText then
+                lib.showTextUI('[E] to leave the tent')
+                showingText = true
+            end
             Wait(0)
-            -- Debug log to confirm thread is running            
-            if IsControlJustReleased(0, 38) then -- Key "E"
+            if IsControlJustReleased(0, 38) then
                 ClearPedTasksImmediately(playerPed)
                 SetEntityCoords(playerPed, PedCoord.x, PedCoord.y, PedCoord.z -1, true, false, false, false)
                 prevtent.busy = false
                 lib.hideTextUI()
+                showingText = false
                 lib.notify({title = 'Tent', description = 'You left the tent.', type = 'success'})
             end
         end
@@ -238,7 +242,7 @@ function deleteTent()
             description = 'Tent deleted successfully.',
             type = 'success'
         })
-        TriggerServerEvent('camping:addItem', 'tent', 1)
+        TriggerServerEvent('camping:AI', 'tent', 1)
     end
 end
 
@@ -357,7 +361,7 @@ RegisterNetEvent('add_fuel_option', function(data)
     fuelLevel = fuelLevel + fuelPercentage
     lib.notify({ title = 'Campfire', description = 'Fuel added successfully.', type = 'success' })
     updateFuelProgressBar(0)  -- Update fuel progress bar with the current level
-    TriggerServerEvent('camping:removeItem', itemtype, inputAmount)
+    TriggerServerEvent('camping:RI', itemtype, inputAmount)
     debugLog("Fuel level updated to: " .. fuelLevel .. " Total duration: " .. totalDuration .. " Fuel percentage: " .. fuelPercentage)
 end)
 
@@ -389,7 +393,7 @@ RegisterNetEvent('campfire_cooking', function(recipe)
 
     -- Remove ingredients
     for _, ingredient in pairs(selectedRecipe.ingredients) do
-        TriggerServerEvent('camping:removeItem', ingredient.name, ingredient.count)
+        TriggerServerEvent('camping:RI', ingredient.name, ingredient.count)
     end
 
     -- Start cooking process
@@ -398,13 +402,23 @@ RegisterNetEvent('campfire_cooking', function(recipe)
         label = 'Cooking ' .. selectedRecipe.label,
         useWhileDead = false,
         canCancel = false,
-        disableControls = true,
+        disable = {
+            move = true, -- Prevents the player from moving
+            car = true,  -- Prevents using vehicles
+            combat = true, -- Disables combat actions
+            mouse = false -- Disables mouse movement
+        },
+        anim = {
+            dict = 'amb@prop_human_bbq@male@base', -- Animation dictionary
+            clip = 'base', -- Animation clip
+            flag = 49 -- Prevents movement while keeping controls disabled
+        }
     })
 
     if progress then
         -- Deduct fuel using updateFuelProgressBar
         updateFuelProgressBar(requiredFuel)
-        TriggerServerEvent('camping:addItem', recipe, 1)
+        TriggerServerEvent('camping:AI', recipe, 1)
         lib.notify({ title = 'Campfire', description = selectedRecipe.label .. ' cooked successfully!', type = 'success' })
     end
 end)
@@ -434,7 +448,7 @@ function deleteCampfire()
             description = 'Campfire deleted successfully.',
             type = 'success'
         })
-        TriggerServerEvent('camping:addItem', 'campfire', 1)
+        TriggerServerEvent('camping:AI', 'campfire', 1)
     end
 end
 
@@ -503,36 +517,38 @@ function math.round(input, decimalPlaces)
 end
 
 Citizen.CreateThread(function()
-	while true do
-        local Wait = 5
-        if enableTent then
+    local showingText = false
+    while true do
+        local Wait = 500
+        if enableTent or enableCampfire then
             local color = {r = 255, g = 255, b = 255, a = 200}
             local position = GetEntityCoords(PlayerPedId())
             local hit, coords, entity = RayCastGamePlayCamera(1000.0)
-            lib.showTextUI('[E] - Place Object')
+
+            if not showingText then
+                lib.showTextUI('[E] - Place Object')
+                showingText = true
+            end
+
             DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
             DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
+            
             if IsControlJustReleased(0, 38) then
-                spawnTent(coords.x, coords.y, coords.z)
-                toggleRaycastTent()
-                print(coords.x .. ' ' .. coords.y .. ' ' .. coords.z)
+                if enableTent then
+                    spawnTent(coords.x, coords.y, coords.z)
+                    toggleRaycastTent()
+                elseif enableCampfire then
+                    spawnCampfire(coords.x, coords.y, coords.z)
+                    toggleRaycastCampfire()
+                end
             end
-        elseif enableCampfire then
-            local color = {r = 255, g = 255, b = 255, a = 200}
-            local position = GetEntityCoords(PlayerPedId())
-            local hit, coords, entity = RayCastGamePlayCamera(1000.0)
-            lib.showTextUI('[E] - Place Object')
-            DrawLine(position.x, position.y, position.z, coords.x, coords.y, coords.z, color.r, color.g, color.b, color.a)
-            DrawMarker(28, coords.x, coords.y, coords.z, 0.0, 0.0, 0.0, 0.0, 180.0, 0.0, 0.1, 0.1, 0.1, color.r, color.g, color.b, color.a, false, true, 2, nil, nil, false)
-            if IsControlJustReleased(0, 38) then
-                spawnCampfire(coords.x, coords.y, coords.z)
-                toggleRaycastCampfire()
-                print(coords.x .. ' ' .. coords.y .. ' ' .. coords.z)
-            end
+            Wait = 5
         else
-            lib.hideTextUI()
-            local Wait = 500
+            if showingText then
+                lib.hideTextUI()
+                showingText = false
+            end
         end
         Citizen.Wait(Wait)
-	end
+    end
 end)
