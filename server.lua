@@ -31,14 +31,16 @@ AddEventHandler('camping:deleteCampingData', function(type, stashID)
 end)
 
 -- Add Item
-RegisterNetEvent('camping:addItem', function(itemName, amount)
+RegisterNetEvent('camping:AI', function(itemName, amount)
+    if source == '' then return end
     local src = source
     local added = exports.ox_inventory:AddItem(src, itemName, amount)
     debugLog(("Added %d of %s to player %d"):format(amount, itemName, src))
 end)
 
 -- Remove Item
-RegisterNetEvent('camping:removeItem', function(itemName, amount)
+RegisterNetEvent('camping:RI', function(itemName, amount)
+    if source == '' then return end
     local src = source
     local removed = exports.ox_inventory:RemoveItem(src, itemName, amount)
     debugLog(("Removed %d of %s from player %d"):format(amount, itemName, src))
