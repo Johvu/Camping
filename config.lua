@@ -1,19 +1,29 @@
 Config = {}
 
-Config.DEBUG = false
+Config.DEBUG = true
 
 Config.targetDistance = 1.5
 
 Config.TentModels = {
-    'prop_skid_tent_01',
-    'prop_skid_tent_01b',
-    'prop_skid_tent_03',
+    [1] = {
+        model ='prop_skid_tent_01',
+        slot = 10,
+        weight = 10000,
+    },
+    [2] = {
+        model ='prop_skid_tent_01b',
+        slot = 20,
+        weight = 10000,
+    },
+    [3] = {
+        model = 'prop_skid_tent_03',
+        slot = 30,
+        weight = 10000,
+    }
 }
 Config.CampfireModels = {
     'prop_beach_fire',
 }
-
-Config.SleepDuration = 0.1 -- minute
 
 Config.tentItem = 'tent'
 Config.campfireItem = 'campfire'

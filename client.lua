@@ -18,11 +18,11 @@ local prevfire = {
 local TentModels = Config.TentModels
 local CampfireModels = Config.CampfireModels
 
-
-
 Citizen.CreateThread(function()
     debugLog("Initializing camping script.")
-    AddTentModel(TentModels, "camping:UseTent", "camping:TentStorage", "camping:PickupTent", "camping:IsPlayerInsideTent")
+    for i = 1 , #TentModels do
+        AddTentModel(TentModels[i].model, "camping:UseTent", "camping:TentStorage", "camping:PickupTent", "camping:IsPlayerInsideTent")
+    end
     AddCampfireModel(CampfireModels, "camping:UseCampfire", "camping:PickupCampfire")
     TriggerServerEvent('camping:LoadData')
 end)
@@ -70,7 +70,7 @@ function spawnTent(x,y,z)
 
     debugLog(("Tent coordinates: X: %.2f, Y: %.2f, Z: %.2f"):format(x, y, (z -0.945)))
 
-    local randomModel = TentModels[math.random(1, #TentModels)]
+    local randomModel = TentModels[math.random(1, #TentModels)].model
     debugLog("Selected tent model: " .. randomModel)
 
     local tentHash = GetHashKey(randomModel)
@@ -87,7 +87,7 @@ function spawnTent(x,y,z)
     prevtent = { prop = prop, stashID = stashId , coords = vector3(x, y, z) }
 
     TriggerServerEvent('camping:RI', Config.tentItem, 1)
-    TriggerServerEvent('camping:createTentStash', stashId)
+    TriggerServerEvent('camping:createTentStash',randomModel, stashId)
     debugLog("Tent spawned and stash created with ID: " .. stashId)
 
     lib.notify({ title = 'Tent', description = 'Tent spawned successfully.', type = 'success' })
@@ -550,5 +550,17 @@ Citizen.CreateThread(function()
             end
         end
         Citizen.Wait(Wait)
+    end
+end)
+
+Citizen.CreateThread(function()
+    local playerPed = PlayerPedId()
+    while true do
+        local pedPos = GetEntityCoords(playerPed)
+        local firePos = GetEntityCoords(prevfire.prop)
+        if #(pedPos - firePos) < 5 then
+            TriggerEvent('esx_status:remove', 'cold', 100)
+        end
+        Citizen.Wait(1000) -- Check every second
     end
 end)

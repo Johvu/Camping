@@ -47,15 +47,25 @@ RegisterNetEvent('camping:RI', function(itemName, amount)
 end)
 
 local tentStashes = {}
-
+local TentModels = Config.TentModels
 -- Create a tent stash
-RegisterNetEvent('camping:createTentStash', function(stashId)
+RegisterNetEvent('camping:createTentStash', function(model, stashId)
+    local slot, weight
+    local tent
     if tentStashes[stashId] then
         debugLog("Tent stash already exists: " .. stashId)
         return
     end
 
-    exports.ox_inventory:RegisterStash(stashId, "Tent", 10, 10000)
+    for i = 1 , #TentModels do
+        if TentModels[i].model == model then 
+            slot = TentModels[i].slot
+            weight = TentModels[i].weight
+            break
+        end
+    end
+
+    exports.ox_inventory:RegisterStash(stashId, "Tent", slot, weight)
     tentStashes[stashId] = stashId
     debugLog("Tent stash created with ID: " .. stashId)
 
