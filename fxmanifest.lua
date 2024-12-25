@@ -7,13 +7,17 @@ author 'GESUS'
 description 'Campfire Script'
 version '1.0.0'
 
-client_script 'client.lua'
+client_script {
+    'client.lua',
+    'heatzone.lua'
+}
 server_script {
     '@oxmysql/lib/MySQL.lua',
     'server.lua'
 }
 shared_scripts {
     '@ox_lib/init.lua',
+    '@Renewed-Lib/init.lua',
     'config.lua',
 }
 
