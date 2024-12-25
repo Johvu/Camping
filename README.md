@@ -10,12 +10,13 @@
 **INSTALL**
 if you want to use heatzone
 - you need to place this in esx_basicneed>client>main.lua at 'esx_status:loaded' event handle
-`TriggerEvent('esx_status:registerStatus', 'cold', 0, '#FFFFFF', function(status)
+```
+TriggerEvent('esx_status:registerStatus', 'cold', 0, '#FFFFFF', function(status)
             return false
         end, function(status)
-            status.add(100)  -- Adjust the value added for cold
-        end)`
-
+            status.add(100)
+        end)
+```
 
 **Feature**
 
