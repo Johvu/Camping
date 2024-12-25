@@ -1,7 +1,21 @@
 **Requirements**
-* ox_lib
-* ox_target
-* ox_inventory
+* [Renewed-Lib](https://github.com/Renewed-Scripts/Renewed-Lib)
+* [ox_lib](https://github.com/overextended/ox_lib)
+* [ox_target](https://github.com/overextended/ox_target)
+* [ox_inventory](https://github.com/overextended/ox_inventory)
+(Optional)
+* [weathersync](https://github.com/kibook/weathersync)
+* [esx_basicneed](https://github.com/esx-framework/esx_basicneeds)
+
+**INSTALL**
+if you want to use heatzone
+- you need to place this in esx_basicneed>client>main.lua at 'esx_status:loaded' event handle
+`TriggerEvent('esx_status:registerStatus', 'cold', 0, '#FFFFFF', function(status)
+            return false
+        end, function(status)
+            status.add(100)  -- Adjust the value added for cold
+        end)`
+
 
 **Feature**
 
