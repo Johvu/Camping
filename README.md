@@ -18,6 +18,7 @@ TriggerEvent('esx_status:registerStatus', 'cold', 0, '#FFFFFF', function(status)
         end)
 ```
 
+
 **Feature**
 
 **TENT**
