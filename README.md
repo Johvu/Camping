@@ -3,9 +3,8 @@
 * [ox_lib](https://github.com/overextended/ox_lib)
 * [ox_target](https://github.com/overextended/ox_target)
 * [ox_inventory](https://github.com/overextended/ox_inventory)
-(Optional)
-* [weathersync](https://github.com/kibook/weathersync)
-* [esx_basicneed](https://github.com/esx-framework/esx_basicneeds)
+* [weathersync](https://github.com/kibook/weathersync) (Optional)
+* [esx_basicneed](https://github.com/esx-framework/esx_basicneeds) (Optional)
 
 **INSTALL**
 if you want to use heatzone
