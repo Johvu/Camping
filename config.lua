@@ -8,14 +8,10 @@ Config.CampfireModel = 'prop_beach_fire'
 Config.tentItem = 'tent'
 Config.campfireItem = 'campfire'
 
-Config.weather = 'wethersync' -- 'wethersync' or 'custom'
+Config.useHeatzone = true
+-- if useHeatzone is true, this will be used
+Config.weatherResource = 'wethersync' -- 'wethersync' or 'custom'
 Config.statusName = 'cold' -- ESX status name
-Config.HeatZone = { 
-    radius = 10.0,
-    heat = 500,
-    tick = 1000
-}
-
 Config.Cold = {
     coldThreshold = -2,
     hypothermiaThreshold = -5, -- Temperature where hypothermia risk starts
@@ -25,6 +21,11 @@ Config.Cold = {
     speedPenalty = 0.9, -- Movement speed reduction when cold
     heatSources = Config.CampfireModel, -- Entities acting as heat sources
     heatSourceRange = 10.0 -- Range to detect heat sources
+}
+Config.HeatZone = { 
+    radius = 10.0,
+    heat = 500,
+    tick = 1000
 }
 
 Config.maxFuel = 300 -- seconds
