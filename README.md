@@ -34,7 +34,7 @@ A versatile camping and campfire cooking script for FiveM that allows players to
 - [ox_lib](https://github.com/overextended/ox_lib)
 - [ox_target](https://github.com/overextended/ox_target)
 - [ox_inventory](https://github.com/overextended/ox_inventory)
-- [GES-Temperature]([https://github.com](https://github.com/DevAlexandre0/GES-Temperature)) (Optional)
+- [GES-Temperature](https://github.com/DevAlexandre0/GES-Temperature) (Optional)
 
 ## Installation
 
