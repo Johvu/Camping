@@ -2,6 +2,13 @@
 
 A versatile camping and campfire cooking script for FiveM that allows players to set up tents, spawn campfires, and engage in a cooking mini-game with an evolving skill system and recipe discovery mechanics. This script integrates with multiple frameworks and resources to provide a rich roleplaying experience.
 
+## Preview
+
+[details="Cooking Menu"]
+![image|690x388](upload://xGu083RgOGBfq15r4HIkOlGqz3n.jpeg)
+[/details]
+
+
 ## Features
 
 - **Tent and Campfire Placement:**  
@@ -47,7 +54,7 @@ A versatile camping and campfire cooking script for FiveM that allows players to
 3. **Add to Server Configuration:**  
    Add the resource to your `server.cfg` file:
    ```
-   ensure campfire-cooking
+   ensure camping
    ```
 
 ## Configuration
@@ -89,7 +96,7 @@ Customize the script by editing the configuration file (usually `config.lua`). S
 ## Credits
 
 - **Developers:**  
-  Developed by [Your Name/Team].
+  Developed by [DevAlexandre&GESUS].
   
 - **Special Thanks:**  
   - [Renewed-Lib](https://github.com/Renewed-Scripts/Renewed-Lib)
@@ -97,3 +104,4 @@ Customize the script by editing the configuration file (usually `config.lua`). S
   - [ox_target](https://github.com/overextended/ox_target)
   - [ox_inventory](https://github.com/overextended/ox_inventory)
   - [GES-Temperature](https://github.com) (Optional)
+---
