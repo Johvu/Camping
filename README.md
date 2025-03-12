@@ -2,12 +2,6 @@
 
 A versatile camping and campfire cooking script for FiveM that allows players to set up tents, spawn campfires, and engage in a cooking mini-game with an evolving skill system and recipe discovery mechanics. This script integrates with multiple frameworks and resources to provide a rich roleplaying experience.
 
-## Preview
-
-[details="Cooking Menu"]
-![image|690x388](upload://xGu083RgOGBfq15r4HIkOlGqz3n.jpeg)
-[/details]
-
 
 ## Features
 
