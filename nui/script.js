@@ -1,8 +1,3 @@
-// Debug function
-function debug(message) {
-  console.log(`[Camping UI] ${message}`)
-}
-
 // Global state
 const state = {
   isVisible: false,
@@ -16,15 +11,10 @@ const state = {
 
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
-  debug("DOM loaded, initializing UI")
-
   // Listen for messages from the game client
   window.addEventListener("message", (event) => {
     const data = event.data
-    debug(`Received message: ${JSON.stringify(data)}`)
-
     if (data.action === "openCookingMenu") {
-      debug("Opening cooking menu")
       state.isVisible = true
       state.recipes = data.recipes || []
       state.inventory = data.inventory || {}
@@ -33,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       renderUI()
     } else if (data.action === "hide") {
-      debug("Hiding UI")
       state.isVisible = false
       renderUI()
     } else if (data.action === "updateInventory") {
@@ -66,7 +55,6 @@ function formatTime(ms) {
 function renderUI() {
   const rootElement = document.getElementById("root")
   if (!rootElement) {
-    debug("ERROR: Root element not found!")
     return
   }
 
@@ -454,8 +442,6 @@ function openFuelMenu() {
   document.getElementById("add-fuel-submit").addEventListener("click", () => {
     const selectedFuelType = fuelTypes.find((fuel) => fuel.id === selectedFuel)
     if (amount > 0) {
-      debug(`Submitting fuel: ${selectedFuel}, amount: ${amount}, duration: ${selectedFuelType.value}`)
-      
       // Send data in the format expected by the client
       fetch("https://camping/addFuel", {
         method: "POST",
@@ -467,11 +453,9 @@ function openFuelMenu() {
         }),
       })
       .then(response => {
-        debug("Fuel added successfully")
         closeFuelModal()
       })
       .catch(error => {
-        debug(`Error adding fuel: ${error}`)
         // Still close the modal but show an error
         closeFuelModal()
         // You could add a notification here
