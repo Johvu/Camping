@@ -8,19 +8,27 @@ description 'Campfire Script'
 version '1.0.0'
 
 client_script {
-    'client.lua',
-    'heatzone.lua'
+    'client/*.lua',
+
 }
 server_script {
     '@oxmysql/lib/MySQL.lua',
-    'server.lua'
+    'server/*.lua'
 }
 shared_scripts {
     '@ox_lib/init.lua',
     '@Renewed-Lib/init.lua',
-    'config.lua',
+    'shared/*.lua',
+}
+ui_page 'nui/index.html'
+
+files {
+    'nui/index.html',
+    'nui/styles.css',
+    'nui/script.js',
 }
 
 dependencies {
     'ox_lib',
 }
+
