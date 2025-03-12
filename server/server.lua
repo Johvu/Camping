@@ -8,13 +8,11 @@ local Inventory = Config.Inventory or 'ox'
 if Framework == 'esx' then
     ESX = exports['es_extended']:getSharedObject()
     if not ESX then
-        print("^1[ERROR] ESX not found. Falling back to standalone.^7")
         Framework = 'standalone'
     end
 elseif Framework == 'qbox' or Framework == 'qb-core' then
     QBCore = exports['qb-core']:GetCoreObject()
     if not QBCore then
-        print("^1[ERROR] QBCore/QBox not found. Falling back to standalone.^7")
         Framework = 'standalone'
     end
 end
@@ -108,7 +106,6 @@ AddEventHandler('camping:saveCampingData', function(type, model, x, y, z, stashI
     
     -- Basic validation
     if not ValidateCoordinates(x, y, z) then
-        print("^1[WARNING] Player " .. src .. " attempted to save camping data with invalid coordinates^7")
         return
     end
     
@@ -241,7 +238,6 @@ RegisterNetEvent('camping:server:spawnTent', function(x, y, z, h, randomModel, s
     
     -- Validate input
     if not ValidateCoordinates(x, y, z) then
-        print("^1[WARNING] Player " .. src .. " attempted to spawn a tent with invalid coordinates^7")
         return
     end
     
@@ -271,7 +267,6 @@ RegisterNetEvent('camping:server:spawnCampfire', function(x, y, z, h, fireModel,
     
     -- Validate input
     if not ValidateCoordinates(x, y, z) then
-        print("^1[WARNING] Player " .. src .. " attempted to spawn a campfire with invalid coordinates^7")
         return
     end
     
@@ -302,7 +297,6 @@ RegisterNetEvent('camping:createTentStash', function(stashId)
     
     -- Validate stash ID format
     if not stashId or type(stashId) ~= "string" or not stashId:match("^tent_%d+$") then
-        print("^1[WARNING] Player " .. src .. " attempted to create an invalid tent stash: " .. tostring(stashId) .. "^7")
         return
     end
     
