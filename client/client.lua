@@ -29,13 +29,11 @@ local Framework = Config.Framework or 'standalone'
 if Framework == 'esx' then
     ESX = exports['es_extended']:getSharedObject()
     if not ESX then
-        print("^1[ERROR] ESX not found. Falling back to standalone.^7")
         Framework = 'standalone'
     end
 elseif Framework == 'qbox' or Framework == 'qb-core' then
     QBCore = exports['qb-core']:GetCoreObject()
     if not QBCore then
-        print("^1[ERROR] QBCore/QBox not found. Falling back to standalone.^7")
         Framework = 'standalone'
     end
 end
@@ -584,11 +582,8 @@ end)
 
 function OpenCookingMenu(campfireID)
     if FuelSystem.isUIOpen then 
-        print("UI is already open, not opening again")
         return 
     end
-    
-    print("Opening cooking menu for campfire: " .. tostring(campfireID))
     
     local inventory = {}
 
@@ -667,14 +662,6 @@ function OpenCookingMenu(campfireID)
     FuelSystem.isUIOpen = true
     SetNuiFocus(true, true)
     
-    print("Sending data to NUI: " .. json.encode({
-        action = 'openCookingMenu',
-        recipes = #recipes,
-        inventory = "inventory data",
-        fuelLevel = FuelSystem.fuelLevel,
-        skill = "skill data"
-    }))
-    
     SendNUIMessage({
         action = 'openCookingMenu',
         recipes = recipes,
@@ -686,11 +673,8 @@ end
 
 function OpenCookingMenu(campfireID)
     if FuelSystem.isUIOpen then 
-        print("UI is already open, not opening again")
         return 
     end
-    
-    print("Opening cooking menu for campfire: " .. tostring(campfireID))
     
     local inventory = {}
     local items = exports.ox_inventory:GetPlayerItems()
@@ -754,14 +738,6 @@ function OpenCookingMenu(campfireID)
     
     FuelSystem.isUIOpen = true
     SetNuiFocus(true, true)
-    
-    print("Sending data to NUI: " .. json.encode({
-        action = 'openCookingMenu',
-        recipes = #recipes,
-        inventory = "inventory data",
-        fuelLevel = FuelSystem.fuelLevel,
-        skill = "skill data"
-    }))
     
     SendNUIMessage({
         action = 'openCookingMenu',
