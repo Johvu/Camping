@@ -203,7 +203,7 @@ end)
 
 -- Add Item
 RegisterNetEvent('camping:AI', function(itemName, amount, meta)
-    if source == '' then return end
+    if not source or source == 0 then return end
     local src = source
     if Inventory == 'ox' then
         exports.ox_inventory:AddItem(src, itemName, amount, meta or nil)
@@ -218,7 +218,7 @@ end)
 
 -- Remove Item
 RegisterNetEvent('camping:RI', function(itemName, amount, meta, slot)
-    if source == '' then return end
+    if not source or source == 0 then return end
     local src = source
     if Inventory == 'ox' then
         exports.ox_inventory:RemoveItem(src, itemName, amount, meta or nil, slot or nil)
@@ -573,4 +573,5 @@ AddEventHandler('playerDropped', function()
         end
     end
 end)
+
 
