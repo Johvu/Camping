@@ -181,7 +181,7 @@ local activeHeatZones = {}
 
 -- Create heat zone around a prop (campfire)
 function createHeatZoneAroundProp(coords, zoneId)
-    if Config.useGESTemperature then
+    if isGESTemperatureAvailable() then
         exports['GES-Temperature']:createHeatZone(coords, zoneId)
         
         -- Store the heat zone in our tracking table for reference
@@ -200,7 +200,7 @@ end
 
 -- Delete heat zone
 function deleteHeatZone(zoneId)
-    if Config.useGESTemperature then
+    if isGESTemperatureAvailable() then
         exports['GES-Temperature']:deleteHeatZone(zoneId)
         
         -- Remove from our tracking table
@@ -318,7 +318,7 @@ function getCurrentWeather()
     if Config.weatherResource == 'renewed-weathersync' then
         return GlobalState.weather and GlobalState.weather.weather or "clear"
     else
-        if Config.useGESTemperature then
+        if isGESTemperatureAvailable() then
             local weatherData = exports['GES-Temperature']:getTemperatureData()
             if weatherData and weatherData.weather then
                 return weatherData.weather
@@ -758,7 +758,7 @@ RegisterNetEvent('campfire_cooking', function(recipe)
 
     local requiredFuel = ((selectedRecipe.time / 100)) -- Convert seconds to fuel units
     local weatherMultiplier = 1.0
-    if Config.useGESTemperature then
+    if isGESTemperatureAvailable() then
         local weatherConfig = exports["GES-Temperature"]:GetWeatherConfig()
         weatherMultiplier = weatherConfig.WeatherEffects.FuelConsumption[currentWeather] or 1.0
     end
@@ -1006,6 +1006,7 @@ end)
 
 -- Register a keybind for it (F10 key)
 RegisterKeyMapping('closecampingui', 'Force close camping UI', 'keyboard', 'F10')
+
 
 
 
