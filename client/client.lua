@@ -13,6 +13,20 @@ local FuelSystem = {
 }
 local currentWeather = "clear"
 
+-- Determine if the optional GES-Temperature resource is available. This
+-- prevents calling exports from a resource that isn't running.
+local function isGESTemperatureAvailable()
+    if not Config.useGESTemperature then
+        return false
+    end
+
+    if not GetResourceState or GetResourceState('GES-Temperature') ~= 'started' then
+        return false
+    end
+
+    return true
+end
+
 -- Skill system variables
 local cookingSkill = {
     level = 1,
@@ -992,5 +1006,6 @@ end)
 
 -- Register a keybind for it (F10 key)
 RegisterKeyMapping('closecampingui', 'Force close camping UI', 'keyboard', 'F10')
+
 
 
