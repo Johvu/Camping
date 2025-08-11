@@ -12,6 +12,7 @@ local FuelSystem = {
     isUIOpen = false,
 }
 local currentWeather = "clear"
+local cachedInventory = {}
 
 -- Determine if the optional GES-Temperature resource is available. This
 -- prevents calling exports from a resource that isn't running.
@@ -113,18 +114,35 @@ function CleanupModelCache()
     end
 end
 
+local function updateInventoryCache()
+    if Inventory ~= 'ox' then return end
+    cachedInventory = {}
+    local items = exports.ox_inventory:GetPlayerItems()
+    for _, item in ipairs(items) do
+        cachedInventory[item.name] = item.count
+    end
+end
+
+if Inventory == 'ox' then
+    AddEventHandler('ox_inventory:updateInventory', function()
+        updateInventoryCache()
+        if FuelSystem.isUIOpen then
+            FuelSystem:refreshUI()
+        end
+    end)
+
+    CreateThread(function()
+        updateInventoryCache()
+    end)
+end
+
 -- Refresh UI with current fuel level and inventory (if UI is open)
 function FuelSystem:refreshUI()
     if self.isUIOpen then
-        local inventory = {}
-        local items = exports.ox_inventory:GetPlayerItems()
-        for _, item in ipairs(items) do
-            inventory[item.name] = item.count
-        end
         SendNUIMessage({
             action = 'updateFuel',
             fuelLevel = self.fuelLevel,
-            inventory = inventory
+            inventory = cachedInventory
         })
     end
 end
@@ -602,9 +620,8 @@ function OpenCookingMenu(campfireID)
     local inventory = {}
 
     if Inventory == 'ox' then
-        local items = exports.ox_inventory:GetPlayerItems()
-        for _, item in pairs(items) do
-            inventory[item.name] = item.count
+        for name, count in pairs(cachedInventory) do
+            inventory[name] = count
         end
     elseif Inventory == 'qb' then
         local PlayerData = QBCore.Functions.GetPlayerData()
@@ -1006,6 +1023,7 @@ end)
 
 -- Register a keybind for it (F10 key)
 RegisterKeyMapping('closecampingui', 'Force close camping UI', 'keyboard', 'F10')
+
 
 
 
