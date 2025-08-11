@@ -671,83 +671,6 @@ function OpenCookingMenu(campfireID)
     })
 end
 
-function OpenCookingMenu(campfireID)
-    if FuelSystem.isUIOpen then 
-        return 
-    end
-    
-    local inventory = {}
-    local items = exports.ox_inventory:GetPlayerItems()
-    for _, item in pairs(items) do
-        inventory[item.name] = item.count
-    end
-    
-    local availableRecipes = GetAvailableRecipes()
-    local recipes = {}
-    for recipeName, recipeData in pairs(availableRecipes) do
-        local label = recipeData.label or recipeName:gsub("_", " "):gsub("^%l", string.upper)
-        local description = recipeData.description or "A delicious recipe"
-        table.insert(recipes, {
-            id = recipeName,
-            label = label,
-            description = description,
-            cookTime = recipeData.time * 1000,
-            category = recipeData.category or "other",
-            ingredients = {},
-            seasonal = recipeData.seasonal or false,
-            hidden = recipeData.hidden or false
-        })
-        if Config.SkillSystem.Enabled and cookingSkill.level > 1 then
-            local benefit = Config.SkillSystem.LevelBenefits[cookingSkill.level]
-            if benefit and benefit.cookTimeReduction > 0 then
-                local reduction = (benefit.cookTimeReduction / 100)
-                recipes[#recipes].cookTime = recipes[#recipes].cookTime * (1 - reduction)
-            end
-        end
-        if type(recipeData.ingredients) == "string" then
-            local amount = recipeData.amount or 1
-            if Config.SkillSystem.Enabled and cookingSkill.level > 1 then
-                local benefit = Config.SkillSystem.LevelBenefits[cookingSkill.level]
-                if benefit and benefit.ingredientReduction > 0 then
-                    local saveChance = benefit.ingredientReduction / 100
-                    if saveChance > 0 and amount > 1 and math.random() < saveChance then
-                        amount = amount - 1
-                    end
-                end
-            end
-            table.insert(recipes[#recipes].ingredients, { name = recipeData.ingredients, count = amount })
-        elseif type(recipeData.ingredients) == "table" then
-            for i, ingredient in ipairs(recipeData.ingredients) do
-                local amount = 1
-                if type(recipeData.amount) == "table" then
-                    amount = recipeData.amount[i] or 1
-                end
-                if Config.SkillSystem.Enabled and cookingSkill.level > 1 then
-                    local benefit = Config.SkillSystem.LevelBenefits[cookingSkill.level]
-                    if benefit and benefit.ingredientReduction > 0 then
-                        local saveChance = benefit.ingredientReduction / 100
-                        if saveChance > 0 and amount > 1 and math.random() < saveChance then
-                            amount = amount - 1
-                        end
-                    end
-                end
-                table.insert(recipes[#recipes].ingredients, { name = ingredient, count = amount })
-            end
-        end
-    end
-    
-    FuelSystem.isUIOpen = true
-    SetNuiFocus(true, true)
-    
-    SendNUIMessage({
-        action = 'openCookingMenu',
-        recipes = recipes,
-        inventory = inventory,
-        fuelLevel = FuelSystem.fuelLevel,
-        skill = cookingSkill
-    })
-end
-
 -- Register NUI callbacks
 RegisterNUICallback('closeCookingMenu', function(data, cb)
     SetNuiFocus(false, false)
@@ -1069,4 +992,5 @@ end)
 
 -- Register a keybind for it (F10 key)
 RegisterKeyMapping('closecampingui', 'Force close camping UI', 'keyboard', 'F10')
+
 
