@@ -21,8 +21,12 @@ RegisterNetEvent('camping:updateFuel')
 AddEventHandler('camping:updateFuel', function(fuelUsed)
     local src = source
     if fuelUsed and fuelUsed > 0 then
-        -- Send updated fuel level back to the client
-        TriggerClientEvent('camping:syncFuel', src, fuelUsed)
+        -- Broadcast updated fuel level to all clients except the source
+        for _, playerId in ipairs(GetPlayers()) do
+            if tonumber(playerId) ~= src then
+                TriggerClientEvent('camping:syncFuel', playerId, fuelUsed)
+            end
+        end
     end
 end)
 
@@ -573,5 +577,6 @@ AddEventHandler('playerDropped', function()
         end
     end
 end)
+
 
 
