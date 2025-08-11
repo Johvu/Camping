@@ -51,6 +51,18 @@ function formatTime(ms) {
   return `${minutes}m ${remainingSeconds}s`
 }
 
+// Escape HTML to prevent injection
+function escapeHtml(text = "") {
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  }
+  return String(text).replace(/[&<>"']/g, (m) => map[m])
+}
+
 // Render the UI
 function renderUI() {
   const rootElement = document.getElementById("root")
@@ -155,10 +167,10 @@ function renderUI() {
         <div class="recipe-card" data-recipe-id="${recipe.id}">
           <div class="recipe-header">
             <div class="recipe-title">
-              ${recipe.label}
+              ${escapeHtml(recipe.label)}
               ${recipe.seasonal ? '<span class="recipe-badge">Seasonal</span>' : ""}
             </div>
-            <p class="recipe-description">${recipe.description}</p>
+            <p class="recipe-description">${escapeHtml(recipe.description)}</p>
             <div class="recipe-info">
               <div class="recipe-info-item">
                 <i class="fas fa-clock recipe-info-icon"></i>
@@ -186,7 +198,10 @@ function renderUI() {
           html += `
             <div class="ingredient-item">
               <span class="ingredient-name">
-                ${ingredient.name.charAt(0).toUpperCase() + ingredient.name.slice(1)}
+                ${escapeHtml(
+                  ingredient.name.charAt(0).toUpperCase() +
+                    ingredient.name.slice(1)
+                )}
               </span>
               <span class="ingredient-count ${hasEnough ? "" : "missing"}">
                 ${playerHas}/${ingredient.count}
