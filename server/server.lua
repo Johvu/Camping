@@ -142,7 +142,7 @@ AddEventHandler('camping:saveCampingData', function(type, model, x, y, z, stashI
     
     if type == 'tent' and safeStashID ~= '' then
         if Inventory == 'ox' then
-            exports.ox_inventory:RegisterStash(stashId, "Tent", 10, 10000)
+            exports.ox_inventory:RegisterStash(safeStashID, "Tent", 10, 10000)
         elseif Inventory == 'qb' then
             -- add your qb stash function
         end
@@ -573,3 +573,4 @@ AddEventHandler('playerDropped', function()
         end
     end
 end)
+
