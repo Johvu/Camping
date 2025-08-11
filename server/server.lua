@@ -165,13 +165,14 @@ AddEventHandler('camping:LoadData', function()
         return
     end
     
-    -- If not cached, load from database
-    local result = exports.oxmysql:executeSync("SELECT * FROM camping")
-    cachedCampingData = result -- Cache the result
-    
-    for _, data in ipairs(result) do
-        TriggerClientEvent('camping:loadCampingData', src, data)
-    end
+    -- If not cached, load from database asynchronously to avoid blocking
+    exports.oxmysql:execute("SELECT * FROM camping", {}, function(result)
+        cachedCampingData = result or {} -- Cache the result
+
+        for _, data in ipairs(cachedCampingData) do
+            TriggerClientEvent('camping:loadCampingData', src, data)
+        end
+    end)
 end)
 
 RegisterNetEvent('camping:deleteCampingData')
@@ -193,8 +194,9 @@ end)
 
 -- Add a function to refresh the cache periodically
 function RefreshCampingDataCache()
-    local result = exports.oxmysql:executeSync("SELECT * FROM camping")
-    cachedCampingData = result
+    exports.oxmysql:execute("SELECT * FROM camping", {}, function(result)
+        cachedCampingData = result or {}
+    end)
 end
 
 -- Refresh cache every 15 minutes
@@ -577,6 +579,7 @@ AddEventHandler('playerDropped', function()
         end
     end
 end)
+
 
 
 
