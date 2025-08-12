@@ -82,7 +82,8 @@ body {
 }
 
 .fuel-progress {
-  width: 200px;
+  width: 100%;
+  max-width: 200px;
   height: 8px;
   background-color: rgba(82, 82, 82, 0.3);
   border-radius: 4px;
@@ -94,6 +95,10 @@ body {
   background-color: #ff7700;
   border-radius: 4px;
   transition: width 0.3s ease;
+}
+
+.fuel-progress-bar.low {
+  background-color: #ff0000;
 }
 
 .fuel-percentage {

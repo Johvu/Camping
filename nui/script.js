@@ -12,30 +12,32 @@ const state = {
 // Initialize when DOM is loaded
 document.addEventListener("DOMContentLoaded", () => {
   // Listen for messages from the game client
-  window.addEventListener("message", (event) => {
-    const data = event.data
-    if (data.action === "openCookingMenu") {
-      state.isVisible = true
-      state.recipes = data.recipes || []
-      state.inventory = data.inventory || {}
-      state.fuelLevel = data.fuelLevel || 0
-      if (data.skill) state.skill = data.skill
-
-      renderUI()
-    } else if (data.action === "hide") {
-      state.isVisible = false
-      renderUI()
-    } else if (data.action === "updateInventory") {
-      state.inventory = data.inventory || {}
-      state.fuelLevel = data.fuelLevel || 0
-      renderUI()
-    } else if (data.action === "updateFuel") {
-      state.fuelLevel = data.fuelLevel || 0
-      renderUI()
-    } else if (data.action === "updateSkill") {
-      if (data.skill) state.skill = data.skill
-      renderUI()
+  window.addEventListener("message", ({ data }) => {
+    switch (data.action) {
+      case "openCookingMenu":
+        state.isVisible = true
+        state.recipes = data.recipes || []
+        state.inventory = data.inventory || {}
+        state.fuelLevel = data.fuelLevel || 0
+        if (data.skill) state.skill = data.skill
+        break
+      case "hide":
+        state.isVisible = false
+        break
+      case "updateInventory":
+        state.inventory = data.inventory || {}
+        state.fuelLevel = data.fuelLevel || 0
+        break
+      case "updateFuel":
+        state.fuelLevel = data.fuelLevel || 0
+        break
+      case "updateSkill":
+        if (data.skill) state.skill = data.skill
+        break
+      default:
+        break
     }
+    renderUI()
   })
 
   // Initial render
@@ -75,19 +77,21 @@ function renderUI() {
     return
   }
 
-  // Filter recipes based on active tab
-  const filteredRecipes = state.recipes.filter((recipe) => {
-    if (state.activeTab === "all") return true
-    return recipe.category === state.activeTab
-  })
+    // Filter recipes based on active tab
+    const filteredRecipes = state.recipes.filter((recipe) => {
+      if (state.activeTab === "all") return true
+      return recipe.category === state.activeTab
+    })
 
-  // Build the HTML
-  let html = `
-    <div class="campfire-menu">
-      <div class="menu-header">
-        <div>
-          <h2 class="menu-title">Campfire Cooking</h2>
-          <p class="menu-subtitle">Prepare meals to restore health and gain buffs</p>
+    const fuelClass = state.fuelLevel < 20 ? "low" : ""
+
+    // Build the HTML
+    let html = `
+      <div class="campfire-menu">
+        <div class="menu-header">
+          <div>
+            <h2 class="menu-title">Campfire Cooking</h2>
+            <p class="menu-subtitle">Prepare meals to restore health and gain buffs</p>
         </div>
         <button class="close-button" id="close-menu">
           <i class="fas fa-times"></i>
@@ -100,8 +104,8 @@ function renderUI() {
           <div>
             <span class="skill-label">Fuel</span>
             <div class="flex items-center">
-              <div class="fuel-progress">
-                <div class="fuel-progress-bar" style="width: ${state.fuelLevel}%"></div>
+              <div class="fuel-progress" title="${Math.round(state.fuelLevel)}% fuel">
+                <div class="fuel-progress-bar ${fuelClass}" style="width: ${state.fuelLevel}%"></div>
               </div>
               <span class="fuel-percentage">${Math.round(state.fuelLevel)}%</span>
             </div>
