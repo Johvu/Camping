@@ -14,18 +14,39 @@ local FuelSystem = {
 local currentWeather = "clear"
 local cachedInventory = {}
 
+-- Relay temperature changes for GES-SurvCore and legacy feeds
+RegisterNetEvent('ges:temperature:changed', function(data)
+    if type(data) == 'table' and data.weather then
+        currentWeather = data.weather
+    end
+end)
+
+RegisterNetEvent('weather-temperature:syncData', function(data)
+    TriggerEvent('ges:temperature:changed', data)
+end)
+
+-- Cache optional GES-Temperature resource state
+local gesTemperatureAvailable = false
+local function updateGESTemperatureState()
+    gesTemperatureAvailable = Config.useGESTemperature
+        and GetResourceState
+        and GetResourceState('GES-Temperature') == 'started'
+end
+
+updateGESTemperatureState()
+
+AddEventHandler('onResourceStart', function(res)
+    if res == 'GES-Temperature' then updateGESTemperatureState() end
+end)
+
+AddEventHandler('onResourceStop', function(res)
+    if res == 'GES-Temperature' then gesTemperatureAvailable = false end
+end)
+
 -- Determine if the optional GES-Temperature resource is available. This
 -- prevents calling exports from a resource that isn't running.
 local function isGESTemperatureAvailable()
-    if not Config.useGESTemperature then
-        return false
-    end
-
-    if not GetResourceState or GetResourceState('GES-Temperature') ~= 'started' then
-        return false
-    end
-
-    return true
+    return gesTemperatureAvailable
 end
 
 -- Skill system variables

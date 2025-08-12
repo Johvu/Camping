@@ -209,8 +209,10 @@ end)
 
 -- Add Item
 RegisterNetEvent('camping:AI', function(itemName, amount, meta)
-    if not source or source == 0 then return end
     local src = source
+    if type(itemName) ~= 'string' or type(amount) ~= 'number' then return end
+    if amount < 1 or amount > 5 or not CheckCooldown(src, 'giveItem', 1000) then return end
+    if not (Config.Recipes[itemName] or (Config.HiddenRecipes and Config.HiddenRecipes[itemName])) then return end
     if Inventory == 'ox' then
         exports.ox_inventory:AddItem(src, itemName, amount, meta or nil)
     elseif Inventory == 'qb' then
@@ -224,18 +226,15 @@ end)
 
 -- Remove Item
 RegisterNetEvent('camping:RI', function(itemName, amount, meta, slot)
-    if not source or source == 0 then return end
     local src = source
+    if type(itemName) ~= 'string' or type(amount) ~= 'number' or amount < 1 or amount > 20 then return end
     if Inventory == 'ox' then
-        exports.ox_inventory:RemoveItem(src, itemName, amount, meta or nil, slot or nil)
+        if not exports.ox_inventory:RemoveItem(src, itemName, amount, meta or nil, slot or nil) then return end
     elseif Inventory == 'qb' then
         local Player = QBCore.Functions.GetPlayer(src)
-        if Player then
-            Player.Functions.RemoveItem(itemName, amount, meta)
-            TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[itemName], "remove")
-        end
+        if not Player or not Player.Functions.RemoveItem(itemName, amount, meta) then return end
+        TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[itemName], "remove")
     end
-    
 end)
 
 -- Create a tent stash
@@ -256,15 +255,19 @@ RegisterNetEvent('camping:server:spawnTent', function(x, y, z, h, randomModel, s
         })
         return
     end   
+    local removed = false
     if Inventory == 'ox' then
-        exports.ox_inventory:RemoveItem(src, Config.tentItem, 1, nil, slot or nil)
+        removed = exports.ox_inventory:RemoveItem(src, Config.tentItem, 1, nil, slot or nil)
     elseif Inventory == 'qb' then
         local Player = QBCore.Functions.GetPlayer(src)
         if Player then
-            Player.Functions.RemoveItem(Config.tentItem, 1, nil)
-            TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.tentItem], "remove")
+            removed = Player.Functions.RemoveItem(Config.tentItem, 1, nil)
+            if removed then
+                TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.tentItem], "remove")
+            end
         end
     end
+    if not removed then return end
     TriggerClientEvent('camping:client:spawnTent', -1, x, y, z, h, randomModel, stashId)
 end)
 
@@ -287,14 +290,17 @@ RegisterNetEvent('camping:server:spawnCampfire', function(x, y, z, h, fireModel,
     end
     
     if Inventory == 'ox' then
-        exports.ox_inventory:RemoveItem(src, Config.campfireItem, 1, nil, slot or nil)
+        removed = exports.ox_inventory:RemoveItem(src, Config.campfireItem, 1, nil, slot or nil)
     elseif Inventory == 'qb' then
         local Player = QBCore.Functions.GetPlayer(src)
         if Player then
-            Player.Functions.RemoveItem(Config.campfireItem, 1, nil)
-            TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.campfireItem], "remove")
+            removed = Player.Functions.RemoveItem(Config.campfireItem, 1, nil)
+            if removed then
+                TriggerClientEvent('inventory:client:ItemBox', src, QBCore.Shared.Items[Config.campfireItem], "remove")
+            end
         end
     end
+    if not removed then return end
     TriggerClientEvent('camping:client:spawnCampfire', -1, x, y, z, h, fireModel, campfireId)
 end)
 
