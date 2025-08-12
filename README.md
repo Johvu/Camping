@@ -8,8 +8,8 @@ A versatile camping and campfire cooking script for FiveM that allows players to
 - **Tent and Campfire Placement:**  
   Players can place tents (which double as storage) and campfires in the game world.
   
-- **Fuel Management System:**  
-  The campfire fuel system uses various fuel types (e.g., garbage, firewood, coal) with dynamic fuel consumption affected by weather conditions.
+- **Fuel Management System:**
+  The campfire fuel system uses various fuel types (e.g., garbage, firewood, coal) with dynamic fuel consumption affected by weather conditions. Each fuel type has configurable minimum and maximum amounts that can be added per action to keep gameplay balanced.
   
 - **Cooking Mini-Game:**  
   Engage in cooking using a UI that shows recipes, progress bars, and ingredient validations. Cooking skill progression can lead to benefits like faster cook times and ingredient reductions.
