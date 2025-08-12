@@ -197,7 +197,19 @@ function FuelSystem:addFuel(itemtype, inputAmount, duration)
         return false
     end
     if not inputAmount or tonumber(inputAmount) < range.min then
-        lib.notify({ title = 'Fuel', description = 'Invalid amount provided for ' .. range.label .. '.', type = 'error' })
+        lib.notify({
+            title = 'Fuel',
+            description = 'Invalid amount provided for ' .. range.label .. '.',
+            type = 'error'
+        })
+        return false
+    end
+    if inputAmount > range.max then
+        lib.notify({
+            title = 'Fuel',
+            description = 'Cannot add more than ' .. range.max .. ' ' .. range.label .. '.',
+            type = 'error'
+        })
         return false
     end
     local totalDuration = duration * inputAmount
