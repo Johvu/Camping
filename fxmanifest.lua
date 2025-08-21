@@ -8,27 +8,24 @@ description 'Campfire Script'
 version '1.0.0'
 
 client_script {
-    'client/*.lua',
-
+    'client.lua',
 }
+
 server_script {
     '@oxmysql/lib/MySQL.lua',
-    'server/*.lua'
+    'server.lua'
 }
+
 shared_scripts {
     '@ox_lib/init.lua',
     '@Renewed-Lib/init.lua',
-    'shared/*.lua',
-}
-ui_page 'nui/index.html'
-
-files {
-    'nui/index.html',
-    'nui/styles.css',
-    'nui/script.js',
+    'config.lua',
 }
 
 dependencies {
     'ox_lib',
+    'Renewed-Lib',
+    'oxmysql',
 }
 
+data_file 'DLC_ITYP_REQUEST' 'stream/log_campfire.ytyp'
